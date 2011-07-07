@@ -1,0 +1,6 @@
+{
+  "username": "user@gmail.com",
+  "password": "password",
+  "spreadsheet": "name of spreadsheet",
+  "maxrow": 50
+}
