@@ -5,18 +5,25 @@ from google.appengine.ext.webapp import template
 import gdata.spreadsheet.text_db as ss
 import yapkke.features as features
 import os
-
-spreadsheet="yapkke.appspot.com"
+import simplejson
 
 class Index(webapp.RequestHandler):
     def get(self):
+        #Configuration file
+        configfile = open(os.path.join(os.path.dirname(__file__), 'config.json'), "r")
+        configstr = ""
+        for l in configfile:
+            configstr += l
+        self.config = simplejson.loads(configstr)
+        configfile.close()
+        
         ##Dictionary for values
         self.tv = {}
 
         ##Get information from spreadsheet
-        self.client = ss.DatabaseClient(username=username,
-                                        password=password)
-        self.db = self.client.GetDatabases(name=spreadsheet)[0]
+        self.client = ss.DatabaseClient(username=self.config["username"],
+                                        password=self.config["password"])
+        self.db = self.client.GetDatabases(name=self.config["spreadsheet"])[0]
         self.get_settings()
         self.get_divisions()
 
@@ -29,7 +36,7 @@ class Index(webapp.RequestHandler):
         """
         self.tv["DIVISIONS"] = ""
         divtable = self.db.GetTables(name="Divisions")[0]
-        records = divtable.GetRecords(1,100)
+        records = divtable.GetRecords(1,  self.config["maxrow"])
         for record in records:
             divstr = '''<div style="'''
             for k,v in record.content.items():
@@ -45,7 +52,7 @@ class Index(webapp.RequestHandler):
         """Populate values from Settings table
         """
         settingtable = self.db.GetTables(name="Settings")[0]
-        records = settingtable.GetRecords(1, 100)
+        records = settingtable.GetRecords(1, self.config["maxrow"])
         for record in records:
             if (record.content["item"] == "Google Analytics"):
                 self.tv["google_analytics"] = features.get_google_analytics(record.content["value"])
