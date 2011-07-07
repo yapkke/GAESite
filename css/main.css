@@ -16,3 +16,10 @@ div.highlight
     font-weight: bold;
     font-style: italic;
 }
+
+div.quote
+{
+    font-size: small;
+    font-style: italic;
+    color: blue;
+}

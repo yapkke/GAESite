@@ -7,7 +7,8 @@ import yapkke.features as features
 import yapkke.publications as publications
 import os
 import simplejson
-
+import random
+       
 class Index(webapp.RequestHandler):
     def get(self):
         #Configuration file
@@ -29,10 +30,22 @@ class Index(webapp.RequestHandler):
         self.get_divisions()
         self.get_publications()
         self.get_research()
-
+        self.get_quote()
+        
         ##Generate response
         path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
         self.response.out.write(template.render(path, self.tv))
+
+    def get_quote(self):
+        """Get quote
+        """
+        pubtable = self.db.GetTables(name="Quotes")[0]
+        records = pubtable.GetRecords(1,  self.config["maxrow"])
+        index = random.randint(1, len(records))
+        self.tv["QUOTE"] = '''%s ---%s
+        ''' % (records[index].content["quote"], records[index].content["person"])
+
+        return self.tv
 
     def get_publications(self):
         """Populate publications
@@ -101,3 +114,4 @@ application = webapp.WSGIApplication([
 
 if __name__ == "__main__":
     run_wsgi_app(application)
+
