@@ -6,7 +6,8 @@ KEYITEMS = [None, "topic", "title", "authors", "month", "year",
 class list:
     """Class to handle publications
     """
-    def __init__(self):
+    def __init__(self, title):
+        self.title = title
         self.topic = []
         self.name = []
 
@@ -17,11 +18,11 @@ class list:
         self.topic[self.name.index(record.content["topic"])].add(record.content)
 
     def __str__(self):
-        publist = "<h2>Publications</h2>\n"
+        publist = "<h2>"+self.title+"</h2>\n"
         publist += "<ul>"
         for t in self.topic:
             publist += str(t)
-        publist += "</ul><br>"
+        publist += "</ul>"
         
         return publist
 
@@ -72,13 +73,13 @@ class paper:
         if (self.content["venue"] != None):
             pstr += self.content["venue"]+"<br>"
         if (self.content["note"] != None):
-            pstr += "("+self.content["note"]+")<br>"
+            pstr += self.content["note"]+"<br>"
 
         hasLink = False
         for k,l in self.content.items():
             if ((l != None) and (k not in KEYITEMS)):
                 hasLink = True
-                pstr += "<a href=\""+l+"\">"+k+"</a>"+"&nbsp;"*2
+                pstr += "<a href=\""+l+"\">"+k.title()+"</a>"+"&nbsp;"*2
         if (hasLink):
             pstr += "<br>"
             

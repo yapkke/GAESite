@@ -28,6 +28,7 @@ class Index(webapp.RequestHandler):
         self.get_settings()
         self.get_divisions()
         self.get_publications()
+        self.get_research()
 
         ##Generate response
         path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
@@ -36,13 +37,26 @@ class Index(webapp.RequestHandler):
     def get_publications(self):
         """Populate publications
         """
-        pl = publications.list()
+        pl = publications.list("Publications")
         pubtable = self.db.GetTables(name="Publications")[0]
         records = pubtable.GetRecords(1,  self.config["maxrow"])
         for record in records:
             pl.add(record)
 
         self.tv["PUBLICATIONS"] = str(pl)
+
+        return self.tv
+
+    def get_research(self):
+        """Populate research
+        """
+        pl = publications.list("Research Activities")
+        pubtable = self.db.GetTables(name="Research")[0]
+        records = pubtable.GetRecords(1,  self.config["maxrow"])
+        for record in records:
+            pl.add(record)
+
+        self.tv["RESEARCH"] = str(pl)
 
         return self.tv
 
