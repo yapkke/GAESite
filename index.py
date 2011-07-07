@@ -31,6 +31,7 @@ class Index(webapp.RequestHandler):
         self.get_publications()
         self.get_research()
         self.get_teaching()
+        self.get_sharing()
         self.get_quote()
         
         ##Generate response
@@ -50,6 +51,18 @@ class Index(webapp.RequestHandler):
 
         return self.tv
 
+    def get_sharing(self):
+        """Populate sharing
+        """
+        sl = publications.sharelist("Shared")
+        stable = self.db.GetTables(name="Sharing")[0]
+        records = stable.GetRecords(1,  self.config["maxrow"])
+        for record in records:
+            sl.add(record)
+
+        self.tv["SHARING"] = str(sl)
+
+        return self.tv
 
     def get_quote(self):
         """Get quote

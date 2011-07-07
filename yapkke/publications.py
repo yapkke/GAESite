@@ -2,6 +2,74 @@ MONTHS = ["", "January ", "February ", "March ", "April ", "May ", "June ",
           "July ", "August ", "September ", "October ", "November ", "December "]
 KEYITEMS = [None, "topic", "title", "authors", "month", "year",
             "venue", "location", "highlight", "bibtex", "note"]
+SHAREKEYITEMS = [None, "category", "title", "description"]
+
+class sharelist:
+    """Class to handle shared items
+    """
+    def __init__(self, title):
+        self.title = title
+        self.category = []
+        self.name = []
+
+    def add(self, record):
+        if (record.content["category"] not in self.name):
+            self.name.append(record.content["category"])
+            self.category.append(category(record.content["category"]))
+        self.category[self.name.index(record.content["category"])].add(record.content)
+
+    def __str__(self):
+        publist = "<h2>"+self.title+"</h2>\n"
+        publist += "<ul>"
+        for t in self.category:
+            publist += str(t)
+        publist += "</ul>"
+        
+        return publist
+
+class category:
+    """Class to repesent a category
+    """
+    def __init__(self, name):
+        self.name = name
+        self.projects = []
+
+    def add(self, content):
+        self.projects.append(project(content))
+
+    def __str__(self):
+        plist = "<li><b>"+self.name+"</b>\n"+\
+                "<ul name=items>"
+        for p in self.projects:
+            plist += str(p)
+        plist += "</ul>"+\
+                 "</li><br>"
+        return plist
+
+class project:
+    """Class to represent a project
+    """
+    def __init__(self, content):
+        self.content = content
+
+    def __str__(self):
+        pstr = "<li>"+self.content["title"]
+        pstr+=  "<ul>"
+        if (self.content["description"] != None):
+            pstr += self.content["description"].replace("\n","<br>")+"<br>"
+            
+        hasLink = False
+        for k,l in self.content.items():
+            if ((l != None) and (k not in SHAREKEYITEMS)):
+                hasLink = True
+                pstr += "<a href=\""+l+"\">"+k.title()+"</a>"+"&nbsp;"*2
+        if (hasLink):
+            pstr += "<br>"
+            
+        pstr += "<br></ul>"
+        pstr += "</li>"
+
+        return pstr
 
 class list:
     """Class to handle publications
@@ -44,46 +112,7 @@ class topic:
         plist += "</ul>"+\
                  "</li><br>"
         return plist
-
-class courselist:
-    """Class to publish teaching
-    """
-    def __init__(self, title="Teaching"):
-        self.title = title
-        self.courses = []
-
-    def add(self, record):
-        self.courses.append(course(record.content))
-
-    def __str__(self):
-        clist = "<h2>"+self.title+"</h2>\n"
-        clist += "<ul name=items>"
-        for c in self.courses:
-            clist += str(c)
-        clist += "</ul>"
-
-        return clist
-
-class course:
-    """Class to represent a course
-    """
-    def __init__(self, content):
-        self.content = content
-
-    def __str__(self):
-        cstr = "<li>"+self.content["classcode"]+" "+self.content["class"]+\
-               " ("+self.content["school"]+")"
-        cstr += "<ul>"
-        if (self.content["role"] != None):
-            cstr += self.content["role"]+"<br>"
-        if (self.content["department"] != None):
-            cstr += self.content["department"]+"<br>"
-        if (self.content["when"] != None):
-            cstr += self.content["when"]+"<br>"
-        cstr += "<br></ul>"
-        cstr += "</li>"
-        return cstr
-
+    
 class paper:
     """Class to represent a paper
     """
@@ -126,3 +155,43 @@ class paper:
         pstr += "</li>"
 
         return pstr
+
+class courselist:
+    """Class to publish teaching
+    """
+    def __init__(self, title="Teaching"):
+        self.title = title
+        self.courses = []
+
+    def add(self, record):
+        self.courses.append(course(record.content))
+
+    def __str__(self):
+        clist = "<h2>"+self.title+"</h2>\n"
+        clist += "<ul name=items>"
+        for c in self.courses:
+            clist += str(c)
+        clist += "</ul>"
+
+        return clist
+
+class course:
+    """Class to represent a course
+    """
+    def __init__(self, content):
+        self.content = content
+
+    def __str__(self):
+        cstr = "<li>"+self.content["classcode"]+" "+self.content["class"]+\
+               " ("+self.content["school"]+")"
+        cstr += "<ul>"
+        if (self.content["role"] != None):
+            cstr += self.content["role"]+"<br>"
+        if (self.content["department"] != None):
+            cstr += self.content["department"]+"<br>"
+        if (self.content["when"] != None):
+            cstr += self.content["when"]+"<br>"
+        cstr += "<br></ul>"
+        cstr += "</li>"
+        return cstr
+
