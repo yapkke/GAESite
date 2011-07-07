@@ -45,6 +45,45 @@ class topic:
                  "</li><br>"
         return plist
 
+class courselist:
+    """Class to publish teaching
+    """
+    def __init__(self, title="Teaching"):
+        self.title = title
+        self.courses = []
+
+    def add(self, record):
+        self.courses.append(course(record.content))
+
+    def __str__(self):
+        clist = "<h2>"+self.title+"</h2>\n"
+        clist += "<ul name=items>"
+        for c in self.courses:
+            clist += str(c)
+        clist += "</ul>"
+
+        return clist
+
+class course:
+    """Class to represent a course
+    """
+    def __init__(self, content):
+        self.content = content
+
+    def __str__(self):
+        cstr = "<li>"+self.content["classcode"]+" "+self.content["class"]+\
+               " ("+self.content["school"]+")"
+        cstr += "<ul>"
+        if (self.content["role"] != None):
+            cstr += self.content["role"]+"<br>"
+        if (self.content["department"] != None):
+            cstr += self.content["department"]+"<br>"
+        if (self.content["when"] != None):
+            cstr += self.content["when"]+"<br>"
+        cstr += "<br></ul>"
+        cstr += "</li>"
+        return cstr
+
 class paper:
     """Class to represent a paper
     """

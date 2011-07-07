@@ -30,18 +30,33 @@ class Index(webapp.RequestHandler):
         self.get_divisions()
         self.get_publications()
         self.get_research()
+        self.get_teaching()
         self.get_quote()
         
         ##Generate response
         path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
         self.response.out.write(template.render(path, self.tv))
 
+    def get_teaching(self):
+        """Populate teaching
+        """
+        cl = publications.courselist()
+        ctable = self.db.GetTables(name="Teaching")[0]
+        records = ctable.GetRecords(1,  self.config["maxrow"])
+        for record in records:
+            cl.add(record)
+
+        self.tv["TEACHING"] = str(cl)
+
+        return self.tv
+
+
     def get_quote(self):
         """Get quote
         """
         pubtable = self.db.GetTables(name="Quotes")[0]
         records = pubtable.GetRecords(1,  self.config["maxrow"])
-        index = random.randint(1, len(records))
+        index = random.randint(0, len(records)-1)
         self.tv["QUOTE"] = '''%s ---%s
         ''' % (records[index].content["quote"], records[index].content["person"])
 
