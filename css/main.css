@@ -4,3 +4,15 @@ h1
     font-family: arial;
     font-weight: bold;
 }
+
+h2
+{
+    font-size: 18;
+}
+
+div.highlight
+{
+    font-size: small;
+    font-weight: bold;
+    font-style: italic;
+}

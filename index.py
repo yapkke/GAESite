@@ -4,6 +4,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.webapp import template
 import gdata.spreadsheet.text_db as ss
 import yapkke.features as features
+import yapkke.publications as publications
 import os
 import simplejson
 
@@ -26,10 +27,24 @@ class Index(webapp.RequestHandler):
         self.db = self.client.GetDatabases(name=self.config["spreadsheet"])[0]
         self.get_settings()
         self.get_divisions()
+        self.get_publications()
 
         ##Generate response
         path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
         self.response.out.write(template.render(path, self.tv))
+
+    def get_publications(self):
+        """Populate publications
+        """
+        pl = publications.list()
+        pubtable = self.db.GetTables(name="Publications")[0]
+        records = pubtable.GetRecords(1,  self.config["maxrow"])
+        for record in records:
+            pl.add(record)
+
+        self.tv["PUBLICATIONS"] = str(pl)
+
+        return self.tv
 
     def get_divisions(self):
         """Populate divisions
