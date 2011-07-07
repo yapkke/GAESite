@@ -18,3 +18,8 @@ def get_css(cssfile):
     return '''
     <link type="text/css" rel="stylesheet" href="%s" />
     ''' % cssfile
+
+def get_js(jsfile):
+    return '''
+    <script language="javascript" src="%s"></script>
+    ''' % jsfile

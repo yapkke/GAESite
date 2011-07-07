@@ -29,9 +29,8 @@ class Index(webapp.RequestHandler):
         """
         self.tv["DIVISIONS"] = ""
         divtable = self.db.GetTables(name="Divisions")[0]
-        index = 1
-        record = divtable.GetRecord(row_number=index)
-        while (record != None):
+        records = divtable.GetRecords(1,100)
+        for record in records:
             divstr = '''<div style="'''
             for k,v in record.content.items():
                 if ((k != "content") and
@@ -40,27 +39,22 @@ class Index(webapp.RequestHandler):
             divstr += '''">%s</div>\n''' % record.content["content"]
             self.tv["DIVISIONS"] += divstr
 
-            index += 1
-            record = divtable.GetRecord(row_number=index)
-
         return self.tv
 
     def get_settings(self):
         """Populate values from Settings table
         """
         settingtable = self.db.GetTables(name="Settings")[0]
-        index = 1
-        record = settingtable.GetRecord(row_number=index)
-        while (record != None):
+        records = settingtable.GetRecords(1, 100)
+        for record in records:
             if (record.content["item"] == "Google Analytics"):
                 self.tv["google_analytics"] = features.get_google_analytics(record.content["value"])
             elif (record.content["item"] == "Stylesheet"):
                 self.tv["css_link"] = features.get_css(record.content["value"])
+            elif (record.content["item"] == "Javascript"):
+                self.tv["js_link"] = features.get_js(record.content["value"])
             else:
                 self.tv[record.content["item"]] = str(record.content["value"])
-
-            index += 1
-            record = settingtable.GetRecord(row_number=index)
         
         return self.tv
     
