@@ -1,0 +1,13 @@
+The era of hosting your own site and running your own machines is
+pretty much past.  Everything is "cloud" now.  So, why not my personal
+website?  Afterall, I can possibly have a much more available personal
+site as a result.
+
+To "cloud" my personal site, I used Google App Engine and Spreadsheet
+in Google Docs.  In fact, I host most of the files I want to share on
+Google Docs too.  So ideally, Google works hard to maintain my
+personal site's availability.  Not bad?
+
+Here's the code I used for my site.  It is damn boring... I know.  But
+I hacked it together real fast and I am a graduate student.  Use it as
+starter code or for your own site if you want.

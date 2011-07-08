@@ -1,0 +1,66 @@
+Create a config.json using the sample (config.json.sample).  Edit your
+app.yaml and upload the code to GAE.  Finally you have to create a
+spreadsheet in GoogleDocs with the following tables and fields:
+
+Settings:
+   Item
+   Value
+
+  Mandatory items are 
+    "Title" for the title of the page"
+  Optional items are
+     "Google Analytics" with the code only in the value
+     "Stylesheet" with link to the css file
+     "Javascript" with link to the javascript file
+     "Body" with HTML code for inclusion include opening tag of BODY
+
+Divisions:
+   top
+   left
+   position
+   z-index
+   visibility
+   content
+  
+  Just to provide divisions for inclusion in the page
+
+Publications:
+   topic
+   year
+   month
+   title
+   authors
+   venue
+   location
+   highlight
+   bibtex
+   note
+   ....
+
+  You can add more fields here, which will translate to links to each
+  item.
+
+Research:
+   <same of publications>
+
+Sharing:
+   category
+   title
+   description
+
+  Again, you can add more fields here, which will translate to links
+  to each item.
+  
+Teaching:
+   class code
+   class
+   role
+   when
+   school
+   department
+
+Quotes:
+   quote
+   person
+
+  One will be randomly chosen for display.
