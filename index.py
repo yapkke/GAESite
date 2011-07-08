@@ -49,11 +49,14 @@ class Bib(webapp.RequestHandler):
         if (record.content["bibtex"] != None):
             return record.content["bibtex"]
         else:
-            b = "@misc{"+str(random.randint(1, 9999))+",\n"
+            b = ""
             if (record.content["authors"] != None):
                 b += "author = {"+record.content["authors"]+"},\n"
             if (record.content["title"] != None):
                 b += "title = {"+record.content["title"]+"},\n"
+
+            b = "@misc{"+str(abs(hash(b)))+",\n"+b
+            
             if (record.content["month"] != None):
                 b += "month = {"+record.content["month"]+"},\n"
             if (record.content["year"] != None):
