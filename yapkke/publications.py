@@ -56,7 +56,7 @@ class project:
         pstr = "<li>"+self.content["title"]
         pstr+=  "<ul>"
         if (self.content["description"] != None):
-            pstr += self.content["description"].replace("\n","<br>")+"<br>"
+            pstr += "<div class=project>"+self.content["description"].replace("\n","<br>")+"</div>"
             
         hasLink = False
         for k,l in self.content.items():

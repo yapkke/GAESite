@@ -23,3 +23,8 @@ div.quote
     font-style: italic;
     color: blue;
 }
+
+div.project
+{
+    width: 600;
+}
