@@ -51,7 +51,8 @@ class Bib(webapp.RequestHandler):
         else:
             b = ""
             if (record.content["authors"] != None):
-                b += "author = {{"+record.content["authors"]+"}},\n"
+                b += "author = {"+\
+                     self.format_authors(record.content["authors"])+"},\n"
             if (record.content["title"] != None):
                 b += "title = {"+record.content["title"]+"},\n"
 
@@ -73,7 +74,18 @@ class Bib(webapp.RequestHandler):
 
             b += "}"
             return b
-    
+
+    def format_authors(self, auth):
+        authors = ""
+        auths = auth.strip().split(",")
+        for au in auths:
+            aut = au.strip()
+            splitindex = aut.index(" ")
+            authors += aut[splitindex:].strip()+", "+\
+                       aut[:splitindex].strip()
+            if (auths.index(au) != (len(auths)-1)):
+                authors += " and "
+        return authors
     
 class Index(webapp.RequestHandler):
     def get(self):
