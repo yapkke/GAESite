@@ -62,7 +62,7 @@ class project:
         for k,l in self.content.items():
             if ((l != None) and (k not in SHAREKEYITEMS)):
                 hasLink = True
-                pstr += "<a href=\""+l+"\">"+k.title()+"</a>"+"&nbsp;"*2
+                pstr += "<a target=_blank href=\""+l+"\">"+k.title()+"</a>"+"&nbsp;"*2
         if (hasLink):
             pstr += "<br>"
             
@@ -155,12 +155,12 @@ class paper:
         hasLink = False
         if ((table != None) and (index != None)):
             hasLink = True
-            pstr += "<a href=\"/bib?table="+table+"&index="+str(index)+"\">BibTeX</a>"+\
+            pstr += "<a target=_blank href=\"/bib?table="+table+"&index="+str(index)+"\">BibTeX</a>"+\
                     "&nbsp;"*2
         for k,l in self.content.items():
             if ((l != None) and (k not in KEYITEMS)):
                 hasLink = True
-                pstr += "<a href=\""+l+"\">"+k.title()+"</a>"+"&nbsp;"*2
+                pstr += "<a target=_blank href=\""+l+"\">"+k.title()+"</a>"+"&nbsp;"*2
         if (hasLink):
             pstr += "<br>"
             
