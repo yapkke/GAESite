@@ -51,7 +51,7 @@ class Bib(webapp.RequestHandler):
         else:
             b = ""
             if (record.content["authors"] != None):
-                b += "author = {"+record.content["authors"]+"},\n"
+                b += "author = {{"+record.content["authors"]+"}},\n"
             if (record.content["title"] != None):
                 b += "title = {"+record.content["title"]+"},\n"
 
