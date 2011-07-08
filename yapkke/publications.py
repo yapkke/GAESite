@@ -86,10 +86,13 @@ class list:
         self.topic[self.name.index(record.content["topic"])].add(record.content)
 
     def __str__(self):
+        return self.get_str()
+
+    def get_str(self, table=None):
         publist = "<h2>"+self.title+"</h2>\n"
         publist += "<ul>"
         for t in self.topic:
-            publist += str(t)
+            publist += t.get_str(table)
         publist += "</ul>"
         
         return publist
@@ -105,10 +108,13 @@ class topic:
         self.papers.append(paper(content))
 
     def __str__(self):
+        return self.get_str()
+
+    def get_str(self, table=None):
         plist = "<li><b>"+self.name+"</b>\n"+\
                 "<ul name=items>"
         for p in self.papers:
-            plist += str(p)
+            plist += p.get_str(table, self.papers.index(p))
         plist += "</ul>"+\
                  "</li><br>"
         return plist
@@ -120,6 +126,9 @@ class paper:
         self.content = content
 
     def __str__(self):
+        return self.get_str()
+
+    def get_str(self, table=None, index=None):
         pstr = "<li>"+self.content["title"]
         if (self.content["highlight"] != None):
             pstr += "<div class=highlight>"+\
@@ -144,6 +153,10 @@ class paper:
             pstr += self.content["note"]+"<br>"
 
         hasLink = False
+        if ((table != None) and (index != None)):
+            hasLink = True
+            pstr += "<a href=\"/bib?table="+table+"&index="+str(index)+"\">BibTeX</a>"+\
+                    "&nbsp;"*2
         for k,l in self.content.items():
             if ((l != None) and (k not in KEYITEMS)):
                 hasLink = True
