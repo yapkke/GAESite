@@ -79,11 +79,12 @@ class list:
         self.topic = []
         self.name = []
 
-    def add(self, record):
+    def add(self, record, index):
         if (record.content["topic"] not in self.name):
             self.name.append(record.content["topic"])
             self.topic.append(topic(record.content["topic"]))
-        self.topic[self.name.index(record.content["topic"])].add(record.content)
+        self.topic[self.name.index(record.content["topic"])].add(record.content,
+                                                                 index)
 
     def __str__(self):
         return self.get_str()
@@ -104,8 +105,8 @@ class topic:
         self.name = name
         self.papers = []
 
-    def add(self, content):
-        self.papers.append(paper(content))
+    def add(self, content, index):
+        self.papers.append(paper(content, index))
 
     def __str__(self):
         return self.get_str()
@@ -114,7 +115,7 @@ class topic:
         plist = "<li><b>"+self.name+"</b>\n"+\
                 "<ul name=items>"
         for p in self.papers:
-            plist += p.get_str(table, self.papers.index(p))
+            plist += p.get_str(table)
         plist += "</ul>"+\
                  "</li><br>"
         return plist
@@ -122,13 +123,14 @@ class topic:
 class paper:
     """Class to represent a paper
     """
-    def __init__(self, content):
+    def __init__(self, content, index):
         self.content = content
+        self.index = index
 
     def __str__(self):
         return self.get_str()
 
-    def get_str(self, table=None, index=None):
+    def get_str(self, table=None):
         pstr = "<li>"+self.content["title"]
         if (self.content["highlight"] != None):
             pstr += "<div class=highlight>"+\
@@ -153,9 +155,9 @@ class paper:
             pstr += self.content["note"]+"<br>"
 
         hasLink = False
-        if ((table != None) and (index != None)):
+        if (table != None):
             hasLink = True
-            pstr += "<a target=_blank href=\"/bib?table="+table+"&index="+str(index)+"\">BibTeX</a>"+\
+            pstr += "<a target=_blank href=\"/bib?table="+table+"&index="+str(self.index)+"\">BibTeX</a>"+\
                     "&nbsp;"*2
         for k,l in self.content.items():
             if ((l != None) and (k not in KEYITEMS)):

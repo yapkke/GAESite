@@ -148,7 +148,7 @@ class Index(webapp.RequestHandler):
         pubtable = self.db.GetTables(name="Publications")[0]
         records = pubtable.GetRecords(1,  self.config["maxrow"])
         for record in records:
-            pl.add(record)
+            pl.add(record, records.index(record))
 
         self.tv["PUBLICATIONS"] = pl.get_str("Publications")
 
@@ -161,7 +161,7 @@ class Index(webapp.RequestHandler):
         pubtable = self.db.GetTables(name="Research")[0]
         records = pubtable.GetRecords(1,  self.config["maxrow"])
         for record in records:
-            pl.add(record)
+            pl.add(record, records.index(record))
 
         self.tv["RESEARCH"] = pl.get_str("Research")
 
