@@ -103,7 +103,12 @@ class Index(webapp.RequestHandler):
         ##Get information from spreadsheet
         self.client = ss.DatabaseClient(username=self.config["username"],
                                         password=self.config["password"])
-        self.db = self.client.GetDatabases(name=self.config["spreadsheet"])[0]
+        self.db = None
+        while (self.db == None):
+            try:
+                self.db = self.client.GetDatabases(name=self.config["spreadsheet"])[0]
+            except ApplicationError:
+                self.db = None
         self.get_settings()
         self.get_divisions()
         self.get_publications()
