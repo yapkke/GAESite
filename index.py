@@ -2,6 +2,7 @@
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.webapp import template
+from google.appengine.runtime import DeadlineExceededError
 import gdata.spreadsheet.text_db as ss
 import yapkke.features as features
 import yapkke.publications as publications
@@ -104,11 +105,12 @@ class Index(webapp.RequestHandler):
         self.client = ss.DatabaseClient(username=self.config["username"],
                                         password=self.config["password"])
         self.db = None
-        while (self.db == None):
-            try:
-                self.db = self.client.GetDatabases(name=self.config["spreadsheet"])[0]
-            except ApplicationError:
-                self.db = None
+        try:
+            self.db = self.client.GetDatabases(name=self.config["spreadsheet"])[0]
+        except DeadlineExceededError:
+            self.response.redirect("http://yappke.appspot.com")
+            self.response.out.write("This operation could not be completed in time...\nTrying again...")
+                        
         self.get_settings()
         self.get_divisions()
         self.get_publications()
