@@ -13,7 +13,8 @@ import random
 class Bib(webapp.RequestHandler):
     def get(self):
         #Configuration file
-        configfile = open(os.path.join(os.path.dirname(__file__), 'config.json'), "r")
+        configfile = open(os.path.join(os.path.dirname(__file__),
+                                       'config.json'), "r")
         configstr = ""
         for l in configfile:
             configstr += l
@@ -25,26 +26,32 @@ class Bib(webapp.RequestHandler):
         table = self.request.get("table")
         index = self.request.get("index")
         r = ""
-        if (table=="" and index==""):
-            #Everything
-            self.client = ss.DatabaseClient(username=self.config["username"],
+        try:
+            if (table=="" and index==""):
+                #Everything
+                self.client = ss.DatabaseClient(username=self.config["username"],
                                             password=self.config["password"])
-            self.db = self.client.GetDatabases(name=self.config["spreadsheet"])[0]
-            for tname in ["Publications", "Research"]:
-                table = self.db.GetTables(name=tname)[0]
-                records = table.GetRecords(1,  self.config["maxrow"])
-                for record in records:
-                    r += self.get_bib(record) + "\n\n"
-        else:
-            #Specific entry
-            self.client = ss.DatabaseClient(username=self.config["username"],
-                                            password=self.config["password"])
-            self.db = self.client.GetDatabases(name=self.config["spreadsheet"])[0]
-            table = self.db.GetTables(name=table)[0]
-            record = table.GetRecord(row_number=int(index)+1)
-            r = self.get_bib(record)
+                self.db = self.client.GetDatabases(
+                    name=self.config["spreadsheet"])[0]
+                for tname in ["Publications", "Research"]:
+                    table = self.db.GetTables(name=tname)[0]
+                    records = table.GetRecords(1,  self.config["maxrow"])
+                    for record in records:
+                        r += self.get_bib(record) + "\n\n"
+            else:
+                #Specific entry
+                self.client = ss.DatabaseClient(username=self.config["username"],
+                                                password=self.config["password"])
+                self.db = self.client.GetDatabases(
+                    name=self.config["spreadsheet"])[0]
+                table = self.db.GetTables(name=table)[0]
+                record = table.GetRecord(row_number=int(index)+1)
+                r = self.get_bib(record)
             
-        self.response.out.write(r)
+            self.response.out.write(r)
+        except DeadlineExceededError:
+            self.response.redirect("http://yappke.appspot.com")
+            self.response.out.write("This operation could not be completed in time...\nTry again...")
 
     def get_bib(self, record):
         if (record.content["bibtex"] != None):
@@ -91,7 +98,8 @@ class Bib(webapp.RequestHandler):
 class Index(webapp.RequestHandler):
     def get(self):
         #Configuration file
-        configfile = open(os.path.join(os.path.dirname(__file__), 'config.json'), "r")
+        configfile = open(os.path.join(os.path.dirname(__file__),
+                                       'config.json'), "r")
         configstr = ""
         for l in configfile:
             configstr += l
@@ -102,26 +110,27 @@ class Index(webapp.RequestHandler):
         self.tv = {}
 
         ##Get information from spreadsheet
-        self.client = ss.DatabaseClient(username=self.config["username"],
-                                        password=self.config["password"])
-        self.db = None
         try:
-            self.db = self.client.GetDatabases(name=self.config["spreadsheet"])[0]
+            self.client = ss.DatabaseClient(username=self.config["username"],
+                                        password=self.config["password"])
+            self.db = None
+            self.db = self.client.GetDatabases(
+                name=self.config["spreadsheet"])[0]                        
+            self.get_settings()
+            self.get_divisions()
+            self.get_publications()
+            self.get_research()
+            self.get_teaching()
+            self.get_sharing()
+            self.get_quote()
+            
+            ##Generate response
+            path = os.path.join(os.path.dirname(__file__),
+                                'templates/index.html')
+            self.response.out.write(template.render(path, self.tv))
         except DeadlineExceededError:
             self.response.redirect("http://yappke.appspot.com")
             self.response.out.write("This operation could not be completed in time...\nTrying again...")
-                        
-        self.get_settings()
-        self.get_divisions()
-        self.get_publications()
-        self.get_research()
-        self.get_teaching()
-        self.get_sharing()
-        self.get_quote()
-        
-        ##Generate response
-        path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
-        self.response.out.write(template.render(path, self.tv))
 
     def get_teaching(self):
         """Populate teaching
