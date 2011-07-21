@@ -10,48 +10,83 @@ import os
 import simplejson
 import random
 
-class Bib(webapp.RequestHandler):
-    def get(self):
-        #Configuration file
+
+class GDocsPage(webapp.RequestHandler):
+    def get_config(self, filename='config.json'):
         configfile = open(os.path.join(os.path.dirname(__file__),
-                                       'config.json'), "r")
+                                       filename), "r")
         configstr = ""
         for l in configfile:
             configstr += l
         self.config = simplejson.loads(configstr)
         configfile.close()
 
+    def get_db(self, name):
+        client = ss.DatabaseClient(username=self.config["username"],
+                                   password=self.config["password"])
+        try:
+            return client.GetDatabases(name=name)[0]
+        except DeadlineExceededError:
+            self.response.redirect("http://yappke.appspot.com")
+            self.response.out.write("This operation could not be completed in time...\nTrying again...")
+            return None
+
+    def get_table(self, name):
+        try:
+            return self.db.GetTables(name=name)[0]
+        except DeadlineExceededError:
+            self.response.redirect("http://yappke.appspot.com")
+            self.response.out.write("This operation could not be completed in time...\nTrying again...")
+            return None
+
+    def get_records(self, table, start=1, end=None):
+        if (end == None):
+            end = self.config["maxrow"]
+        try:
+            return table.GetRecords(start,  end)
+        except DeadlineExceededError, SSLCertificateError:
+            self.response.redirect("http://yappke.appspot.com")
+            self.response.out.write("This operation could not be completed in time...\nTrying again...")
+            return None
+
+class Bib(GDocsPage):
+    def get(self):
+        #Configuration file
+        self.get_config()
+
         #Generate response
         self.response.headers["Content-Type"] = "text/plain"
         table = self.request.get("table")
         index = self.request.get("index")
         r = ""
-        try:
-            if (table=="" and index==""):
-                #Everything
-                self.client = ss.DatabaseClient(username=self.config["username"],
+        if (table=="" and index==""):
+            #Everything
+            self.client = ss.DatabaseClient(username=self.config["username"],
                                             password=self.config["password"])
-                self.db = self.client.GetDatabases(
-                    name=self.config["spreadsheet"])[0]
-                for tname in ["Publications", "Research"]:
-                    table = self.db.GetTables(name=tname)[0]
-                    records = table.GetRecords(1,  self.config["maxrow"])
-                    for record in records:
-                        r += self.get_bib(record) + "\n\n"
-            else:
-                #Specific entry
-                self.client = ss.DatabaseClient(username=self.config["username"],
-                                                password=self.config["password"])
-                self.db = self.client.GetDatabases(
-                    name=self.config["spreadsheet"])[0]
-                table = self.db.GetTables(name=table)[0]
-                record = table.GetRecord(row_number=int(index)+1)
-                r = self.get_bib(record)
+            self.db = self.get_db(self.config["spreadsheet"])
+            if (self.db == None):
+                return
+            for tname in ["Publications", "Research"]:
+                table = self.get_table(tname)
+                if (table == None):
+                    return
+                records = self.get_records(table)
+                if (records == None):
+                    return
+                for record in records:
+                    r += self.get_bib(record) + "\n\n"
+        else:
+            #Specific entry
+            self.client = ss.DatabaseClient(username=self.config["username"],
+                                            password=self.config["password"])
+            self.db = self.get_db(self.config["spreadsheet"])
+            table = self.get_table(table)
+            if (table == None):
+                return
+            record = table.GetRecord(row_number=int(index)+1)
+            r = self.get_bib(record)
             
-            self.response.out.write(r)
-        except DeadlineExceededError:
-            self.response.redirect("http://yappke.appspot.com")
-            self.response.out.write("This operation could not be completed in time...\nTry again...")
+        self.response.out.write(r)
 
     def get_bib(self, record):
         if (record.content["bibtex"] != None):
@@ -95,49 +130,41 @@ class Bib(webapp.RequestHandler):
                 authors += " and "
         return authors
     
-class Index(webapp.RequestHandler):
+class Index(GDocsPage):
     def get(self):
         #Configuration file
-        configfile = open(os.path.join(os.path.dirname(__file__),
-                                       'config.json'), "r")
-        configstr = ""
-        for l in configfile:
-            configstr += l
-        self.config = simplejson.loads(configstr)
-        configfile.close()
+        self.get_config()
         
         ##Dictionary for values
         self.tv = {}
 
         ##Get information from spreadsheet
-        try:
-            self.client = ss.DatabaseClient(username=self.config["username"],
-                                        password=self.config["password"])
-            self.db = None
-            self.db = self.client.GetDatabases(
-                name=self.config["spreadsheet"])[0]                        
-            self.get_settings()
-            self.get_divisions()
-            self.get_publications()
-            self.get_research()
-            self.get_teaching()
-            self.get_sharing()
-            self.get_quote()
-            
-            ##Generate response
-            path = os.path.join(os.path.dirname(__file__),
-                                'templates/index.html')
-            self.response.out.write(template.render(path, self.tv))
-        except DeadlineExceededError:
-            self.response.redirect("http://yappke.appspot.com")
-            self.response.out.write("This operation could not be completed in time...\nTrying again...")
+        self.db = self.get_db(self.config["spreadsheet"])
+        if (self.db == None):
+            return
+        self.get_settings()
+        self.get_divisions()
+        self.get_publications()
+        self.get_research()
+        self.get_teaching()
+        self.get_sharing()
+        self.get_quote()
+        
+        ##Generate response
+        path = os.path.join(os.path.dirname(__file__),
+                            'templates/index.html')
+        self.response.out.write(template.render(path, self.tv))
 
     def get_teaching(self):
         """Populate teaching
         """
         cl = publications.courselist()
-        ctable = self.db.GetTables(name="Teaching")[0]
-        records = ctable.GetRecords(1,  self.config["maxrow"])
+        ctable = self.get_table(name="Teaching")
+        if (ctable == None):
+            return
+        records = self.get_records(ctable)
+        if (records == None):
+            return
         for record in records:
             cl.add(record)
 
@@ -149,8 +176,12 @@ class Index(webapp.RequestHandler):
         """Populate sharing
         """
         sl = publications.sharelist("Shared")
-        stable = self.db.GetTables(name="Sharing")[0]
-        records = stable.GetRecords(1,  self.config["maxrow"])
+        stable = self.get_table(name="Sharing")
+        if (stable == None):
+            return
+        records = self.get_records(stable)
+        if (records == None):
+            return
         for record in records:
             sl.add(record)
 
@@ -161,8 +192,12 @@ class Index(webapp.RequestHandler):
     def get_quote(self):
         """Get quote
         """
-        pubtable = self.db.GetTables(name="Quotes")[0]
-        records = pubtable.GetRecords(1,  self.config["maxrow"])
+        pubtable = self.get_table(name="Quotes")
+        if (pubtable == None):
+            return
+        records = self.get_records(pubtable)
+        if (records == None):
+            return
         index = random.randint(0, len(records)-1)
         self.tv["QUOTE"] = '''%s ---%s
         ''' % (records[index].content["quote"], records[index].content["person"])
@@ -173,8 +208,12 @@ class Index(webapp.RequestHandler):
         """Populate publications
         """
         pl = publications.list("Publications")
-        pubtable = self.db.GetTables(name="Publications")[0]
-        records = pubtable.GetRecords(1,  self.config["maxrow"])
+        pubtable = self.get_table(name="Publications")
+        if (pubtable == None):
+            return
+        records = self.get_records(pubtable)
+        if (records == None):
+            return
         for record in records:
             pl.add(record, records.index(record))
 
@@ -186,8 +225,12 @@ class Index(webapp.RequestHandler):
         """Populate research
         """
         pl = publications.list("Research Activities")
-        pubtable = self.db.GetTables(name="Research")[0]
-        records = pubtable.GetRecords(1,  self.config["maxrow"])
+        pubtable = self.get_table(name="Research")
+        if (pubtable == None):
+            return
+        records = self.get_records(pubtable)
+        if (records == None):
+            return
         for record in records:
             pl.add(record, records.index(record))
 
@@ -199,8 +242,12 @@ class Index(webapp.RequestHandler):
         """Populate divisions
         """
         self.tv["DIVISIONS"] = ""
-        divtable = self.db.GetTables(name="Divisions")[0]
-        records = divtable.GetRecords(1,  self.config["maxrow"])
+        divtable = self.get_table(name="Divisions")
+        if (divtable == None):
+            return
+        records = self.get_records(divtable)
+        if (records == None):
+            return
         for record in records:
             divstr = '''<div style="'''
             for k,v in record.content.items():
@@ -215,8 +262,12 @@ class Index(webapp.RequestHandler):
     def get_settings(self):
         """Populate values from Settings table
         """
-        settingtable = self.db.GetTables(name="Settings")[0]
-        records = settingtable.GetRecords(1, self.config["maxrow"])
+        settingtable = self.get_table(name="Settings")
+        if (settingtable == None):
+            return
+        records = self.get_records(settingtable)
+        if (records == None):
+            return
         for record in records:
             if (record.content["item"] == "Google Analytics"):
                 self.tv["google_analytics"] = features.get_google_analytics(record.content["value"])
