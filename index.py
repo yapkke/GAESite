@@ -25,7 +25,11 @@ class GDocsPage(webapp.RequestHandler):
         client = ss.DatabaseClient(username=self.config["username"],
                                    password=self.config["password"])
         try:
-            return client.GetDatabases(name=name)[0]
+            dbs = client.GetDatabases(name=name)
+            if (len(dbs) == 0):
+                self.response.out.write("Spreadsheet for website is not found...")
+                return None
+            return dbs[0]
         except DeadlineExceededError:
             self.response.redirect("http://yappke.appspot.com")
             self.response.out.write("This operation could not be completed in time...\nTrying again...")
