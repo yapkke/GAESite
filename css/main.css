@@ -39,3 +39,18 @@ div.project
 {
     width: 600;
 }
+
+h1.pages
+{
+    font-size: 28;
+    font-family: arial;
+    font-weight: bold;
+}
+
+a.pages
+{
+    color: black;
+    font-family: arial;
+    font-weight: bold;
+    text-decoration: none;
+}

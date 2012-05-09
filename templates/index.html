@@ -6,12 +6,25 @@
   {{ google_analytics }}
 </head>
 <body {{ Body }} >
-{{ DIVISIONS }}
+<table>
+<tr> <td colspan=2> 
+{{ DIVISIONS }} 
+</td> </tr>
+<tr>
+<td valign=top> 
+{{ ITEMS }}
+</td>
+<td valign=top> 
+{{ ABOUT_ME }}
 {{ PUBLICATIONS }}
 {{ RESEARCH }}
 {{ TEACHING }}
-{{ SHARING }}
-<br>
+{{ SHARING }} </td>
+</tr>
+<tr><td colspan=2>
 <div class=quote>{{ QUOTE }}</div>
+<img src="https://developers.google.com/appengine/images/appengine-noborder-120x30.gif" 
+  alt="Powered by Google App Engine" />
+</td></tr>
 </body>
 </html>

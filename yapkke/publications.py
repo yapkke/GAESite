@@ -18,8 +18,16 @@ class sharelist:
             self.category.append(category(record.content["category"]))
         self.category[self.name.index(record.content["category"])].add(record.content)
 
+
     def __str__(self):
-        publist = "<h2>"+self.title+"</h2>\n"
+        return self.get_str()
+
+    def get_str(self, title=True):
+        if (title):
+            publist = "<h2>"+self.title+"</h2>\n"
+        else:
+            publist = "&nbsp"
+            
         publist += "<ul>"
         for t in self.category:
             publist += str(t)
@@ -89,8 +97,11 @@ class list:
     def __str__(self):
         return self.get_str()
 
-    def get_str(self, table=None):
-        publist = "<h2>"+self.title+"</h2>\n"
+    def get_str(self, table=None, title=True):
+        if (title):
+            publist = "<h2>"+self.title+"</h2>\n"
+        else:
+            publist = "&nbsp"
         publist += "<ul>"
         for t in self.topic:
             publist += t.get_str(table)

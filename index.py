@@ -10,7 +10,6 @@ import os
 import simplejson
 import random
 
-
 class GDocsPage(webapp.RequestHandler):
     def get_config(self, filename='config.json'):
         configfile = open(os.path.join(os.path.dirname(__file__),
@@ -134,31 +133,7 @@ class Bib(GDocsPage):
                 authors += " and "
         return authors
     
-class Index(GDocsPage):
-    def get(self):
-        #Configuration file
-        self.get_config()
-        
-        ##Dictionary for values
-        self.tv = {}
-
-        ##Get information from spreadsheet
-        self.db = self.get_db(self.config["spreadsheet"])
-        if (self.db == None):
-            return
-        self.get_settings()
-        self.get_divisions()
-        self.get_publications()
-        self.get_research()
-        self.get_teaching()
-        self.get_sharing()
-        self.get_quote()
-        
-        ##Generate response
-        path = os.path.join(os.path.dirname(__file__),
-                            'templates/index.html')
-        self.response.out.write(template.render(path, self.tv))
-
+class Main(GDocsPage):
     def get_teaching(self):
         """Populate teaching
         """
@@ -176,7 +151,7 @@ class Index(GDocsPage):
 
         return self.tv
 
-    def get_sharing(self):
+    def get_sharing(self, title=True):
         """Populate sharing
         """
         sl = publications.sharelist("Shared")
@@ -189,7 +164,7 @@ class Index(GDocsPage):
         for record in records:
             sl.add(record)
 
-        self.tv["SHARING"] = str(sl)
+        self.tv["SHARING"] = sl.get_str(title=title)
 
         return self.tv
 
@@ -208,7 +183,7 @@ class Index(GDocsPage):
 
         return self.tv
 
-    def get_publications(self):
+    def get_publications(self, title=True):
         """Populate publications
         """
         pl = publications.list("Publications")
@@ -221,7 +196,7 @@ class Index(GDocsPage):
         for record in records:
             pl.add(record, records.index(record))
 
-        self.tv["PUBLICATIONS"] = pl.get_str("Publications")
+        self.tv["PUBLICATIONS"] = pl.get_str("Publications", title=title)
 
         return self.tv
 
@@ -242,7 +217,7 @@ class Index(GDocsPage):
 
         return self.tv
 
-    def get_divisions(self):
+    def get_divisions(self, add_mode, add_change_to_single=True):
         """Populate divisions
         """
         self.tv["DIVISIONS"] = ""
@@ -261,7 +236,44 @@ class Index(GDocsPage):
             divstr += '''">%s</div>\n''' % record.content["content"]
             self.tv["DIVISIONS"] += divstr
 
+        if (add_mode):
+            self.tv["DIVISIONS"] += self.add_mode(add_change_to_single)
+
         return self.tv
+
+    def get_about_me(self, add_mode, add_change_to_single=False):
+        """Populate divisions
+        """
+        self.tv["ABOUT_ME"] = ""
+        divtable = self.get_table(name="About Me")
+        if (divtable == None):
+            return
+        records = self.get_records(divtable)
+        if (records == None):
+            return
+        for record in records:
+            divstr = '''<div style="'''
+            for k,v in record.content.items():
+                if ((k != "content") and
+                    (v != None)):
+                    divstr += k+":"+v+";"
+            divstr += '''">%s</div>\n''' % record.content["content"]
+            self.tv["ABOUT_ME"] += divstr
+
+        if (add_mode):
+            self.tv["ABOUT_ME"] += self.add_mode(add_change_to_single)
+
+        return self.tv
+
+    def add_mode(self, add_change_to_single):
+        array = "<div>&nbsp</div>"
+        if (add_change_to_single):
+            array += "<div><small>View <a href=\"/single\">all-in-one version</a>.</small></div>"
+        else:
+            array += "<div><small>View <a href=\"/\">normal version</a>.</small></div>"
+        array += "<div><small>Click on <font color=red>(+)</font>/<font color=red>(--)</font> to expand/collapse each item below...</small></div>"
+
+        return array
 
     def get_settings(self):
         """Populate values from Settings table
@@ -283,12 +295,97 @@ class Index(GDocsPage):
                 self.tv[record.content["item"]] = str(record.content["value"])
         
         return self.tv
-    
 
-application = webapp.WSGIApplication([
-    ('/bib', Bib),
-    ('/', Index)],
-    debug=True)
+class Multi(Main):
+    def get(self):
+        #Configuration file
+        self.get_config()
+        
+        ##Dictionary for values
+        self.tv = {}
+
+        ##Get information from spreadsheet
+        self.db = self.get_db(self.config["spreadsheet"])
+        if (self.db == None):
+            return
+       
+        self.get_settings()
+        self.get_divisions(True)
+        self.get_items()
+        self.get_more()
+        self.get_quote()
+        
+        ##Generate response
+        path = os.path.join(os.path.dirname(__file__),
+                            'templates/index.html')
+        self.response.out.write(template.render(path, self.tv))        
+
+    def get_more(self):
+        pass
+
+    def get_items(self):
+        self.tv["ITEMS"] = "<br>"
+        for i in range(0,len(NAMES)):
+            if (len(NAMES[i]) > 0):
+                if (isinstance(self, PAGES[i][1])):
+                    self.tv["ITEMS"] += "<h1 class=pages>"+NAMES[i]+"</h1>"
+                else:
+                    self.tv["ITEMS"] += "<div><a class=pages href=\""+PAGES[i][0]+"\">"+NAMES[i]+"</a></div>"
+                
+        return self.tv
+
+class Index(Multi):
+    def get_more(self):
+        self.get_about_me(False)
+
+class Publications(Multi):
+    def get_more(self):
+        self.get_publications(False)
+        
+class Research(Multi):
+    def get_more(self):
+        self.get_research()
+        self.get_teaching()
+
+class Sharing(Multi):
+    def get_more(self):
+        self.get_sharing(False)
+
+class Single(Main):
+    def get(self):
+        #Configuration file
+        self.get_config()
+        
+        ##Dictionary for values
+        self.tv = {}
+
+        ##Get information from spreadsheet
+        self.db = self.get_db(self.config["spreadsheet"])
+        if (self.db == None):
+            return
+
+        self.get_settings()
+        self.get_divisions(False)
+        self.get_about_me(True)
+        self.get_publications()
+        self.get_research()
+        self.get_teaching()
+        self.get_sharing()
+        self.get_quote()
+        
+        ##Generate response
+        path = os.path.join(os.path.dirname(__file__),
+                            'templates/index.html')
+        self.response.out.write(template.render(path, self.tv))    
+
+PAGES = [('/bib', Bib),
+         ("/", Index),
+         ("/publications",Publications),
+         ("/research", Research),
+         ("/sharing", Sharing),
+         ("/single", Single)]
+NAMES = ["","About Me", "Publications", "Research/Teaching", "Miscellaneous", ""]
+application = webapp.WSGIApplication(PAGES, debug=True)
 
 if __name__ == "__main__":
     run_wsgi_app(application)
