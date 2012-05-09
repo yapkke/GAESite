@@ -42,7 +42,8 @@ div.project
 
 h1.pages
 {
-    font-size: 28;
+    font-size: 22;
+    color: #990000;
     font-family: arial;
     font-weight: bold;
 }
